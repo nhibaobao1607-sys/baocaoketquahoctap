@@ -58,7 +58,7 @@ else:
     edit_row = None
     st.session_state.edit_index = None
 
-with st.form("lesson_form"):
+with st.form("lesson_form", clear_on_submit=True):
     lesson_date = st.date_input(
         "📅 Ngày học",
         value=(
@@ -118,11 +118,6 @@ with st.form("lesson_form"):
             st.session_state.edit_index = None
 
         st.session_state.data.to_csv(DATA_FILE, index=False)
-
-        # reset form về trắng
-        st.session_state.content = ""
-        st.session_state.pros = ""
-        st.session_state.cons = ""
 
         st.success("✅ Đã lưu buổi học")
         st.rerun()
@@ -213,3 +208,4 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
+
