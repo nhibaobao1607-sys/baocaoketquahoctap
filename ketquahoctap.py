@@ -5,6 +5,7 @@ from datetime import date
 
 # ================== CẤU HÌNH ==================
 st.set_page_config(page_title="Báo cáo học tập", layout="wide")
+
 DATA_FILE = "data.csv"
 
 # ================== INIT STATE ==================
@@ -13,7 +14,7 @@ if "data" not in st.session_state:
         st.session_state.data = pd.read_csv(DATA_FILE)
         for col in [
             "Bé đã làm tốt các phần:",
-            "Tuy nhiên, cần cải thiện thêm:"
+            "Tuy nhiên, cần cải thiện thêm:",
         ]:
             if col not in st.session_state.data.columns:
                 st.session_state.data[col] = ""
@@ -31,7 +32,7 @@ if "data" not in st.session_state:
 if "edit_index" not in st.session_state:
     st.session_state.edit_index = None
 
-# state cho form (để reset)
+# state cho form
 for key in ["content", "pros", "cons"]:
     if key not in st.session_state:
         st.session_state[key] = ""
@@ -39,23 +40,23 @@ for key in ["content", "pros", "cons"]:
 # ================== TIÊU ĐỀ ==================
 st.title("📘 BÁO CÁO KẾT QUẢ HỌC TẬP")
 
+# ================== THÔNG TIN HỌC SINH ==================
 with st.expander("ℹ️ Thông tin học sinh", expanded=True):
     student_name = st.text_input("Tên học sinh", "Quốc Anh")
 
-# ================== LOAD DỮ LIỆU KHI SỬA ==================
-edit_row = None
+# ================== FORM THÊM / SỬA ==================
+st.divider()
+st.subheader("➕ Thêm / ✏️ Sửa buổi học")
+
+# lấy dữ liệu cũ nếu đang sửa
 if (
     st.session_state.edit_index is not None
     and st.session_state.edit_index in st.session_state.data.index
 ):
     edit_row = st.session_state.data.loc[st.session_state.edit_index]
-    st.session_state.content = edit_row["Nội dung học"]
-    st.session_state.pros = edit_row["Bé đã làm tốt các phần:"]
-    st.session_state.cons = edit_row["Tuy nhiên, cần cải thiện thêm:"]
-
-# ================== FORM ==================
-st.divider()
-st.subheader("➕ Thêm / ✏️ Sửa buổi học")
+else:
+    edit_row = None
+    st.session_state.edit_index = None
 
 with st.form("lesson_form"):
     lesson_date = st.date_input(
@@ -118,7 +119,7 @@ with st.form("lesson_form"):
 
         st.session_state.data.to_csv(DATA_FILE, index=False)
 
-        # RESET FORM
+        # reset form về trắng
         st.session_state.content = ""
         st.session_state.pros = ""
         st.session_state.cons = ""
@@ -158,12 +159,18 @@ else:
         with st.expander(f"📅 {row['Ngày']} — {row['Đánh giá']}"):
             st.markdown(f"**📚 Nội dung học:**\n\n{row['Nội dung học']}")
             st.markdown(f"**✅ Bé đã làm tốt các phần:**\n\n{row['Bé đã làm tốt các phần:']}")
-            st.markdown(f"**⚠️ Tuy nhiên, cần cải thiện thêm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}")
+            st.markdown(
+                f"**⚠️ Tuy nhiên, cần cải thiện thêm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}"
+            )
 
             col1, col2 = st.columns(2)
+
             with col1:
                 if st.button("✏️ Sửa", key=f"edit_{idx}_{row['Ngày']}"):
                     st.session_state.edit_index = idx
+                    st.session_state.content = row["Nội dung học"]
+                    st.session_state.pros = row["Bé đã làm tốt các phần:"]
+                    st.session_state.cons = row["Tuy nhiên, cần cải thiện thêm:"]
                     st.rerun()
 
             with col2:
@@ -190,10 +197,18 @@ if not st.session_state.data.empty:
     chart_df = chart_df.sort_values("Ngày")
 
     col1, col2 = st.columns(2)
+
     with col1:
+        st.markdown("### 📊 Số buổi theo đánh giá")
         st.bar_chart(chart_df["Đánh giá"].value_counts())
+
     with col2:
+        st.markdown("### 📈 Xu hướng tiến bộ")
         st.line_chart(chart_df.set_index("Ngày")["Score"])
+
+    percent = chart_df["Đánh giá"].value_counts(normalize=True) * 100
+    st.markdown("### 🧮 Tỷ lệ % đánh giá")
+    st.dataframe(percent.round(1).astype(str) + " %")
 else:
     st.info("Chưa có dữ liệu để thống kê.")
 
