@@ -115,8 +115,8 @@ else:
     for idx, row in df.iterrows():
         with st.expander(f"📅 {row['Ngày']} — {row['Đánh giá']}"):
             st.markdown(f"**📚 Nội dung học:**\n\n{row['Nội dung học']}")
-            st.markdown(f"**✅ Ưu điểm:**\n\n{row['Ưu điểm']}")
-            st.markdown(f"**⚠️ Nhược điểm:**\n\n{row['Nhược điểm']}")
+            st.markdown(f"**✅ Ưu điểm:**\n\n{row['Bé đã làm tốt các phần:']}")
+            st.markdown(f"**⚠️ Nhược điểm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}")
 
             col1, col2 = st.columns(2)
             with col1:
@@ -166,7 +166,3 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
-
-
-
-
