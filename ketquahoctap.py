@@ -155,12 +155,12 @@ else:
             col1, col2 = st.columns(2)
 
             with col1:
-                if st.button("✏️ Sửa", key=f"edit_{idx}"):
+               if st.button("✏️ Sửa", key=f"edit_{idx}_{row['Ngày']}"):
                     st.session_state.edit_index = idx
                     st.rerun()
 
             with col2:
-                if st.button("❌ Xóa", key=f"delete_{idx}"):
+               if st.button("❌ Xóa", key=f"delete_{idx}_{row['Ngày']}"):
                     st.session_state.data = st.session_state.data.drop(idx)
                     st.session_state.data.to_csv(DATA_FILE, index=False)
                     st.rerun()
@@ -199,3 +199,4 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
+
