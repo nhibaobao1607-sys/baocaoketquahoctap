@@ -11,15 +11,15 @@ DATA_FILE = "data.csv"
 # ================== LOAD / INIT DATA ==================
 if "data" not in st.session_state:
     if os.path.exists(DATA_FILE):
-    st.session_state.data = pd.read_csv(DATA_FILE)
+        st.session_state.data = pd.read_csv(DATA_FILE)
 
-    # Vá cột bị thiếu (nếu có)
-       for col in ["Bé đã làm tốt các phần:", "Tuy nhiên, cần cải thiện thêm:"]:
-          if col not in st.session_state.data.columns:
-            st.session_state.data[col] = ""
+        # Vá cột thiếu nếu file cũ
+        for col in ["Ưu điểm", "Nhược điểm"]:
+            if col not in st.session_state.data.columns:
+                st.session_state.data[col] = ""
     else:
         st.session_state.data = pd.DataFrame(
-            columns=["Ngày", "Nội dung học", "Bé đã làm tốt các phần: ", "Tuy nhiên, cần cải thiện thêm:", "Đánh giá"]
+            columns=["Ngày", "Nội dung học", "Ưu điểm", "Nhược điểm", "Đánh giá"]
         )
 
 if "edit_index" not in st.session_state:
@@ -166,5 +166,6 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
+
 
 
