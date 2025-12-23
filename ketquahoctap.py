@@ -14,8 +14,8 @@ if "data" not in st.session_state:
     st.session_state.data = pd.read_csv(DATA_FILE)
 
     # Vá cột bị thiếu (nếu có)
-    for col in ["Bé đã làm tốt các phần:", "Tuy nhiên, cần cải thiện thêm:"]:
-        if col not in st.session_state.data.columns:
+       for col in ["Bé đã làm tốt các phần:", "Tuy nhiên, cần cải thiện thêm:"]:
+          if col not in st.session_state.data.columns:
             st.session_state.data[col] = ""
     else:
         st.session_state.data = pd.DataFrame(
@@ -166,4 +166,5 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
+
 
