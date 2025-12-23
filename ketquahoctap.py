@@ -110,19 +110,26 @@ st.subheader("📋 Danh sách buổi học (5 buổi gần nhất)")
 if df.empty:
     st.info("Chưa có dữ liệu phù hợp.")
 else:
-    df = df.sort_values("Ngày", ascending=False).head(5)
+    # Sort nhưng GIỮ index gốc
+    df_sorted = df.copy()
+    df_sorted["Ngày_sort"] = pd.to_datetime(df_sorted["Ngày"], dayfirst=True)
+    df_sorted = df_sorted.sort_values("Ngày_sort", ascending=False)
 
-    for idx, row in df.iterrows():
+    visible_df = df_sorted.head(5)
+
+    for idx, row in visible_df.iterrows():
         with st.expander(f"📅 {row['Ngày']} — {row['Đánh giá']}"):
             st.markdown(f"**📚 Nội dung học:**\n\n{row['Nội dung học']}")
             st.markdown(f"**✅ Bé đã làm tốt các phần:**\n\n{row['Bé đã làm tốt các phần:']}")
             st.markdown(f"**⚠️ Tuy nhiên, cần cải thiện thêm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}")
 
             col1, col2 = st.columns(2)
+
             with col1:
                 if st.button("✏️ Sửa", key=f"edit_{idx}"):
                     st.session_state.edit_index = idx
                     st.rerun()
+
             with col2:
                 if st.button("❌ Xóa", key=f"delete_{idx}"):
                     st.session_state.data = (
@@ -130,6 +137,7 @@ else:
                     )
                     st.session_state.data.to_csv(DATA_FILE, index=False)
                     st.rerun()
+
 
 # ================== THỐNG KÊ ==================
 st.divider()
@@ -166,4 +174,5 @@ else:
     st.info("Chưa có dữ liệu để thống kê.")
 
 st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
+
 
