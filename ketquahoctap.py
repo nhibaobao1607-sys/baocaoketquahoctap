@@ -134,25 +134,27 @@ df = df[df["Đánh giá"].isin(filter_rating)]
 
 # ================== DANH SÁCH BUỔI HỌC ==================
 st.divider()
-st.subheader("📋 Danh sách buổi học (5 buổi gần nhất)")
+st.subheader("📋 Danh sách buổi học")
 
 if df.empty:
     st.info("Chưa có dữ liệu.")
 else:
-    df["Ngày_sort"] = pd.to_datetime(df["Ngày"], dayfirst=True)
-df = df.sort_values("Ngày_sort", ascending=False)
+    df = df.sort_values(
+        by="Ngày",
+        key=lambda x: pd.to_datetime(x, dayfirst=True),
+        ascending=False
+    )
 
-# ===== TÙY CHỌN XEM FULL =====
-show_all = st.checkbox("📖 Xem toàn bộ lịch sử học tập", value=False)
-
-if not show_all:
-    df = df.head(5)
-
+    show_all = st.checkbox("📖 Xem toàn bộ lịch sử học tập", value=False)
+    if not show_all:
+        df = df.head(5)
 
     for idx, row in df.iterrows():
         with st.expander(f"📅 {row['Ngày']} — {row['Đánh giá']}"):
             st.markdown(f"**📚 Nội dung học:**\n\n{row['Nội dung học']}")
-            st.markdown(f"**✅ Bé đã làm tốt các phần:**\n\n{row['Bé đã làm tốt các phần:']}")
+            st.markdown(
+                f"**✅ Bé đã làm tốt các phần:**\n\n{row['Bé đã làm tốt các phần:']}"
+            )
             st.markdown(
                 f"**⚠️ Tuy nhiên, cần cải thiện thêm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}"
             )
