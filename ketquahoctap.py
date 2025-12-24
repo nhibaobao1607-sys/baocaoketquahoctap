@@ -3,21 +3,18 @@ import pandas as pd
 import os
 from datetime import date
 
+# ================== PHÂN QUYỀN ==================
+mode = st.query_params.get("mode", "view")
+is_edit_mode = mode == "edit"
+
 # ================== CẤU HÌNH ==================
 st.set_page_config(page_title="Báo cáo học tập", layout="wide")
-
 DATA_FILE = "data.csv"
 
-# ================== INIT STATE ==================
+# ================== INIT DATA ==================
 if "data" not in st.session_state:
     if os.path.exists(DATA_FILE):
         st.session_state.data = pd.read_csv(DATA_FILE)
-        for col in [
-            "Bé đã làm tốt các phần:",
-            "Tuy nhiên, cần cải thiện thêm:",
-        ]:
-            if col not in st.session_state.data.columns:
-                st.session_state.data[col] = ""
     else:
         st.session_state.data = pd.DataFrame(
             columns=[
@@ -32,95 +29,90 @@ if "data" not in st.session_state:
 if "edit_index" not in st.session_state:
     st.session_state.edit_index = None
 
-# state cho form
-for key in ["content", "pros", "cons"]:
-    if key not in st.session_state:
-        st.session_state[key] = ""
-
 # ================== TIÊU ĐỀ ==================
 st.title("📘 BÁO CÁO KẾT QUẢ HỌC TẬP")
 
 # ================== THÔNG TIN HỌC SINH ==================
 with st.expander("ℹ️ Thông tin học sinh", expanded=True):
-    student_name = st.text_input("Tên học sinh", "Quốc Anh")
+    st.text_input("Tên học sinh", "Quốc Anh", disabled=not is_edit_mode)
 
-# ================== FORM THÊM / SỬA ==================
-st.divider()
-st.subheader("➕ Thêm / ✏️ Sửa buổi học")
+# ================== FORM THÊM / SỬA (CHỈ EDIT MODE) ==================
+if is_edit_mode:
+    st.divider()
+    st.subheader("➕ Thêm / ✏️ Sửa buổi học")
 
-# lấy dữ liệu cũ nếu đang sửa
-if (
-    st.session_state.edit_index is not None
-    and st.session_state.edit_index in st.session_state.data.index
-):
-    edit_row = st.session_state.data.loc[st.session_state.edit_index]
-else:
-    edit_row = None
-    st.session_state.edit_index = None
+    if (
+        st.session_state.edit_index is not None
+        and st.session_state.edit_index in st.session_state.data.index
+    ):
+        edit_row = st.session_state.data.loc[st.session_state.edit_index]
+    else:
+        edit_row = None
+        st.session_state.edit_index = None
 
-with st.form("lesson_form", clear_on_submit=True):
-    lesson_date = st.date_input(
-        "📅 Ngày học",
-        value=(
-            pd.to_datetime(edit_row["Ngày"], dayfirst=True)
-            if edit_row is not None
-            else date.today()
-        ),
-    )
-
-    content = st.text_area(
-        "📚 Nội dung học",
-        key="content",
-        height=120,
-    )
-
-    col1, col2 = st.columns(2)
-    with col1:
-        pros = st.text_area(
-            "✅ Bé đã làm tốt các phần:",
-            key="pros",
-            height=100,
-        )
-    with col2:
-        cons = st.text_area(
-            "⚠️ Tuy nhiên, cần cải thiện thêm:",
-            key="cons",
-            height=100,
+    with st.form("lesson_form", clear_on_submit=True):
+        lesson_date = st.date_input(
+            "📅 Ngày học",
+            value=(
+                pd.to_datetime(edit_row["Ngày"], dayfirst=True)
+                if edit_row is not None
+                else date.today()
+            ),
         )
 
-    rating = st.selectbox(
-        "📊 Đánh giá",
-        ["Xuất sắc", "Tốt", "Khá", "Cần cố gắng"],
-        index=(
-            ["Xuất sắc", "Tốt", "Khá", "Cần cố gắng"].index(edit_row["Đánh giá"])
-            if edit_row is not None
-            else 0
-        ),
-    )
+        content = st.text_area(
+            "📚 Nội dung học",
+            value=edit_row["Nội dung học"] if edit_row is not None else "",
+            height=120,
+        )
 
-    save_btn = st.form_submit_button("💾 LƯU BUỔI HỌC")
-
-    if save_btn:
-        new_row = {
-            "Ngày": lesson_date.strftime("%d/%m/%Y"),
-            "Nội dung học": content,
-            "Bé đã làm tốt các phần:": pros,
-            "Tuy nhiên, cần cải thiện thêm:": cons,
-            "Đánh giá": rating,
-        }
-
-        if edit_row is None:
-            st.session_state.data = pd.concat(
-                [st.session_state.data, pd.DataFrame([new_row])]
+        col1, col2 = st.columns(2)
+        with col1:
+            pros = st.text_area(
+                "✅ Bé đã làm tốt các phần:",
+                value=edit_row["Bé đã làm tốt các phần:"] if edit_row is not None else "",
+                height=100,
             )
-        else:
-            st.session_state.data.loc[st.session_state.edit_index] = new_row
-            st.session_state.edit_index = None
+        with col2:
+            cons = st.text_area(
+                "⚠️ Tuy nhiên, cần cải thiện thêm:",
+                value=edit_row["Tuy nhiên, cần cải thiện thêm:"] if edit_row is not None else "",
+                height=100,
+            )
 
-        st.session_state.data.to_csv(DATA_FILE, index=False)
+        rating = st.selectbox(
+            "📊 Đánh giá",
+            ["Xuất sắc", "Tốt", "Khá", "Cần cố gắng"],
+            index=(
+                ["Xuất sắc", "Tốt", "Khá", "Cần cố gắng"].index(edit_row["Đánh giá"])
+                if edit_row is not None
+                else 0
+            ),
+        )
 
-        st.success("✅ Đã lưu buổi học")
-        st.rerun()
+        save_btn = st.form_submit_button("💾 LƯU BUỔI HỌC")
+
+        if save_btn:
+            new_row = {
+                "Ngày": lesson_date.strftime("%d/%m/%Y"),
+                "Nội dung học": content.strip(),
+                "Bé đã làm tốt các phần:": pros.strip(),
+                "Tuy nhiên, cần cải thiện thêm:": cons.strip(),
+                "Đánh giá": rating,
+            }
+
+            if edit_row is None:
+                st.session_state.data = pd.concat(
+                    [st.session_state.data, pd.DataFrame([new_row])],
+                    ignore_index=True,
+                )
+            else:
+                st.session_state.data.loc[st.session_state.edit_index] = new_row
+                st.session_state.edit_index = None
+
+            st.session_state.data.to_csv(DATA_FILE, index=False)
+            st.success("✅ Đã lưu buổi học")
+            st.rerun()
 
 # ================== TÌM KIẾM & LỌC ==================
 st.divider()
@@ -145,10 +137,17 @@ st.divider()
 st.subheader("📋 Danh sách buổi học (5 buổi gần nhất)")
 
 if df.empty:
-    st.info("Chưa có dữ liệu phù hợp.")
+    st.info("Chưa có dữ liệu.")
 else:
     df["Ngày_sort"] = pd.to_datetime(df["Ngày"], dayfirst=True)
-    df = df.sort_values("Ngày_sort", ascending=False).head(5)
+df = df.sort_values("Ngày_sort", ascending=False)
+
+# ===== TÙY CHỌN XEM FULL =====
+show_all = st.checkbox("📖 Xem toàn bộ lịch sử học tập", value=False)
+
+if not show_all:
+    df = df.head(5)
+
 
     for idx, row in df.iterrows():
         with st.expander(f"📅 {row['Ngày']} — {row['Đánh giá']}"):
@@ -158,21 +157,19 @@ else:
                 f"**⚠️ Tuy nhiên, cần cải thiện thêm:**\n\n{row['Tuy nhiên, cần cải thiện thêm:']}"
             )
 
-            col1, col2 = st.columns(2)
+            if is_edit_mode:
+                col1, col2 = st.columns(2)
 
-            with col1:
-                if st.button("✏️ Sửa", key=f"edit_{idx}_{row['Ngày']}"):
-                    st.session_state.edit_index = idx
-                    st.session_state.content = row["Nội dung học"]
-                    st.session_state.pros = row["Bé đã làm tốt các phần:"]
-                    st.session_state.cons = row["Tuy nhiên, cần cải thiện thêm:"]
-                    st.rerun()
+                with col1:
+                    if st.button("✏️ Sửa", key=f"edit_{idx}"):
+                        st.session_state.edit_index = idx
+                        st.rerun()
 
-            with col2:
-                if st.button("❌ Xóa", key=f"delete_{idx}_{row['Ngày']}"):
-                    st.session_state.data = st.session_state.data.drop(idx)
-                    st.session_state.data.to_csv(DATA_FILE, index=False)
-                    st.rerun()
+                with col2:
+                    if st.button("❌ Xóa", key=f"delete_{idx}"):
+                        st.session_state.data = st.session_state.data.drop(idx)
+                        st.session_state.data.to_csv(DATA_FILE, index=False)
+                        st.rerun()
 
 # ================== THỐNG KÊ ==================
 st.divider()
@@ -205,7 +202,6 @@ if not st.session_state.data.empty:
     st.markdown("### 🧮 Tỷ lệ % đánh giá")
     st.dataframe(percent.round(1).astype(str) + " %")
 else:
-    st.info("Chưa có dữ liệu để thống kê.")
+    st.info("Chưa có dữ liệu.")
 
-st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc nào")
-
+st.caption("📌 Dữ liệu được lưu tự động – phụ huynh có thể xem bất cứ lúc ")
